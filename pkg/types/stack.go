@@ -39,8 +39,10 @@ type Version struct {
 
 // StackCreate is input to the Create operation for a Stack
 type StackCreate struct {
-	Spec         StackSpec          `json:"spec"`
-	Orchestrator OrchestratorChoice `json:"orchestrator"`
+	Metadata
+	Templates      []string           `json:"templates"`
+	PropertyValues []string           `json:"property_values,omitempty"`
+	Orchestrator   OrchestratorChoice `json:"orchestrator"`
 }
 
 // Metadata contains metadata for a Stack.
@@ -57,6 +59,7 @@ type StackList struct {
 // StackSpec defines the desired state of Stack
 type StackSpec struct {
 	Metadata
+	Templates      []string                         `json:"templates"`
 	Services       types.Services                   `json:"services,omitempty"`
 	Secrets        map[string]types.SecretConfig    `json:"secrets,omitempty"`
 	Configs        map[string]types.ConfigObjConfig `json:"configs,omitempty"`

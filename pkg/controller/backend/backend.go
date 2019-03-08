@@ -8,7 +8,7 @@ import (
 	"github.com/docker/stacks/pkg/compose/loader"
 	composetypes "github.com/docker/stacks/pkg/compose/types"
 	"github.com/docker/stacks/pkg/interfaces"
-	"github.com/docker/stacks/pkg/substitution"
+	//"github.com/docker/stacks/pkg/substitution"
 	"github.com/docker/stacks/pkg/types"
 )
 
@@ -33,18 +33,25 @@ func NewDefaultStacksBackend(stackStore interfaces.StackStore, swarmBackend inte
 
 // CreateStack creates a new stack if the stack is valid.
 func (b *DefaultStacksBackend) CreateStack(create types.StackCreate) (types.StackCreateResponse, error) {
+	fmt.Printf("XXX in backend.CreateStack\n")
 	if create.Orchestrator != types.OrchestratorSwarm {
 		return types.StackCreateResponse{}, fmt.Errorf("invalid orchestrator type %s. This backend only supports orchestrator type swarm", create.Orchestrator)
 	}
 
+	fmt.Printf("XXX converting with loader\n")
+	spec, err := loader.ConvertStackCreate(create)
+	if err != nil {
+		return types.StackCreateResponse{}, fmt.Errorf("unable to translate swarm spec: %s", err)
+	}
+
 	// Create the Swarm Stack object
 	stack := types.Stack{
-		Spec:         create.Spec,
+		Spec:         *spec,
 		Orchestrator: types.OrchestratorSwarm,
 	}
 
 	// Convert to the Stack to a SwarmStack
-	swarmSpec, err := b.convertToSwarmStackSpec(create.Spec)
+	swarmSpec, err := b.convertToSwarmStackSpec(*spec)
 	if err != nil {
 		return types.StackCreateResponse{}, fmt.Errorf("unable to translate swarm spec: %s", err)
 	}
@@ -118,31 +125,25 @@ func (b *DefaultStacksBackend) ParseComposeInput(input types.ComposeInput) (*typ
 }
 
 func (b *DefaultStacksBackend) convertToSwarmStackSpec(spec types.StackSpec) (interfaces.SwarmStackSpec, error) {
-	// Substitute variables with desired property values
-	substitutedSpec, err := substitution.DoSubstitution(spec)
-	if err != nil {
-		return interfaces.SwarmStackSpec{}, err
-	}
-
 	namespace := convert.NewNamespace(spec.Metadata.Name)
 
-	services, err := convert.Services(namespace, substitutedSpec, b.swarmBackend)
+	services, err := convert.Services(namespace, spec, b.swarmBackend)
 	if err != nil {
 		return interfaces.SwarmStackSpec{}, fmt.Errorf("failed to convert services : %s", err)
 	}
 
-	configs, err := convert.Configs(namespace, substitutedSpec.Configs)
+	configs, err := convert.Configs(namespace, spec.Configs)
 	if err != nil {
 		return interfaces.SwarmStackSpec{}, fmt.Errorf("failed to convert configs: %s", err)
 	}
 
-	secrets, err := convert.Secrets(namespace, substitutedSpec.Secrets)
+	secrets, err := convert.Secrets(namespace, spec.Secrets)
 	if err != nil {
 		return interfaces.SwarmStackSpec{}, fmt.Errorf("failed to convert secrets: %s", err)
 	}
 
-	serviceNetworks := getServicesDeclaredNetworks(substitutedSpec.Services)
-	networkCreates, _ := convert.Networks(namespace, substitutedSpec.Networks, serviceNetworks)
+	serviceNetworks := getServicesDeclaredNetworks(spec.Services)
+	networkCreates, _ := convert.Networks(namespace, spec.Networks, serviceNetworks)
 	// TODO: validate external networks?
 
 	stackSpec := interfaces.SwarmStackSpec{
