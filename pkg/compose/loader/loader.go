@@ -399,9 +399,8 @@ func LoadService(name string, serviceDict map[string]interface{}, workingDir str
 	}
 	serviceConfig.Name = name
 
-	if err := resolveEnvironment(serviceConfig, workingDir, lookupEnv); err != nil {
-		return nil, err
-	}
+	// On Server-side we don't replace EnvFile or lookup client env vars during parsing
+	// TODO - consider refining this model to support env from config objects
 
 	if err := resolveVolumePaths(serviceConfig.Volumes, workingDir, lookupEnv); err != nil {
 		return nil, err
@@ -430,41 +429,6 @@ func getExtras(dict map[string]interface{}) map[string]interface{} {
 		return nil
 	}
 	return extras
-}
-
-func updateEnvironment(environment map[string]*string, vars map[string]*string, lookupEnv template.Mapping) {
-	for k, v := range vars {
-		interpolatedV, ok := lookupEnv(k)
-		if (v == nil || *v == "") && ok {
-			// lookupEnv is prioritized over vars
-			environment[k] = &interpolatedV
-		} else {
-			environment[k] = v
-		}
-	}
-}
-
-func resolveEnvironment(serviceConfig *types.ServiceConfig, workingDir string, lookupEnv template.Mapping) error {
-	environment := make(map[string]*string)
-
-	if len(serviceConfig.EnvFile) > 0 {
-		var envVars []string
-
-		for _, file := range serviceConfig.EnvFile {
-			filePath := absPath(workingDir, file)
-			fileVars, err := opts.ParseEnvFile(filePath)
-			if err != nil {
-				return err
-			}
-			envVars = append(envVars, fileVars...)
-		}
-		updateEnvironment(environment,
-			opts.ConvertKVStringsToMapWithNil(envVars), lookupEnv)
-	}
-
-	updateEnvironment(environment, serviceConfig.Environment, lookupEnv)
-	serviceConfig.Environment = environment
-	return nil
 }
 
 func resolveVolumePaths(volumes []types.ServiceVolumeConfig, workingDir string, lookupEnv template.Mapping) error {
