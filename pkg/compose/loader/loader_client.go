@@ -35,9 +35,7 @@ func LoadComposefile(composefiles []string) (*types.ComposeInput, error) {
 
 // ParseComposeInput will convert the ComposeInput into the StackCreate type
 // If the ComposeInput contains any variables, those will be
-// listed in the StackSpec.PropertyValues field, so they can be filled
-// in prior to sending the StackCreate to the Create API.  If defaults
-// are defined in the compose file(s) those defaults will be included.
+// considered errors and reported to the client
 func ParseComposeInput(input types.ComposeInput) (*types.StackCreate, error) {
 	if len(input.ComposeFiles) == 0 {
 		return nil, nil
@@ -96,14 +94,17 @@ func ParseComposeInput(input types.ComposeInput) (*types.StackCreate, error) {
 			properties = append(properties, key)
 		}
 	}
+	// TODO - add support for server-side properties instead of treating them as errors
+	if len(properties) > 0 {
+		return nil, fmt.Errorf("input contains unsubstituted variables: %v", properties)
+	}
 	return &types.StackCreate{
 		Spec: types.StackSpec{
-			Services:       config.Services,
-			Secrets:        config.Secrets,
-			Configs:        config.Configs,
-			Networks:       config.Networks,
-			Volumes:        config.Volumes,
-			PropertyValues: properties,
+			Services: config.Services,
+			Secrets:  config.Secrets,
+			Configs:  config.Configs,
+			Networks: config.Networks,
+			Volumes:  config.Volumes,
 		},
 	}, nil
 

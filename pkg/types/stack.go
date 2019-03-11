@@ -57,14 +57,16 @@ type StackList struct {
 // StackSpec defines the desired state of Stack
 type StackSpec struct {
 	Metadata
-	Services       types.Services                   `json:"services,omitempty"`
-	Secrets        map[string]types.SecretConfig    `json:"secrets,omitempty"`
-	Configs        map[string]types.ConfigObjConfig `json:"configs,omitempty"`
-	Networks       map[string]types.NetworkConfig   `json:"networks,omitempty"`
-	Volumes        map[string]types.VolumeConfig    `json:"volumes,omitempty"`
-	StackImage     string                           `json:"stack_image,omitempty"`
-	PropertyValues []string                         `json:"property_values,omitempty"`
-	Collection     string                           `json:"collection,omitempty"`
+	Services   types.Services                   `json:"services,omitempty"`
+	Secrets    map[string]types.SecretConfig    `json:"secrets,omitempty"`
+	Configs    map[string]types.ConfigObjConfig `json:"configs,omitempty"`
+	Networks   map[string]types.NetworkConfig   `json:"networks,omitempty"`
+	Volumes    map[string]types.VolumeConfig    `json:"volumes,omitempty"`
+	StackImage string                           `json:"stack_image,omitempty"`
+	Collection string                           `json:"collection,omitempty"`
+
+	// TODO - add support for server side property expansion
+	// PropertyValues []string                         `json:"property_values,omitempty"`
 }
 
 // StackResources links to the running instances of the StackSpec
