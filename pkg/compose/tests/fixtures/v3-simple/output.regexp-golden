@@ -1,0 +1,52 @@
+CMD: stack deploy -c pkg/compose/tests/fixtures/v3-simple/docker-compose.yml v3-simple
+Deployed Stack {{.*}}
+
+CMD: stack services v3-simple
+no services found in stack: v3-simple
+
+CMD: stack inspect v3-simple
+[
+    {
+        "Index": {{.*}}
+        "spec": {
+            "Name": "v3-simple",
+            "Labels": null,
+            "services": {
+                "another": {
+                    "build": {},
+                    "command": [
+                        "top"
+                    ],
+                    "credential_spec": {},
+                    "deploy": {
+                        "resources": {},
+                        "placement": {}
+                    },
+                    "image": "busybox:latest"
+                },
+                "simple": {
+                    "build": {},
+                    "command": [
+                        "top"
+                    ],
+                    "credential_spec": {},
+                    "deploy": {
+                        "resources": {},
+                        "placement": {}
+                    },
+                    "image": "busybox:latest"
+                }
+            }
+        },
+        "stack_resources": {},
+        "orchestrator": "swarm",
+        "stack_status": {
+            "message": "",
+            "phase": "",
+            "overall_health": "",
+            "services_status": null,
+            "last_updated": ""
+        },
+        "ID": "{{.*}}
+    }
+]

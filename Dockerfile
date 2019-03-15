@@ -2,7 +2,7 @@ ARG GOLANG_BASE
 ARG ALPINE_BASE
 FROM ${GOLANG_BASE} as builder
 ARG     GOMETALINTER_SHA=v2.0.6
-RUN apk -v add --update ca-certificates jq curl git make bash gcc musl-dev linux-headers && \
+RUN apk -v add --update ca-certificates jq curl git make bash gcc musl-dev linux-headers coreutils && \
     go get -d github.com/alecthomas/gometalinter && \
     cd /go/src/github.com/alecthomas/gometalinter && \
     git checkout -q "$GOMETALINTER_SHA" && \
@@ -15,6 +15,14 @@ RUN     go get -d github.com/mjibson/esc && \
         git checkout -q "$ESC_SHA" && \
         go build -v -o /usr/bin/esc . && \
         rm -rf /go/src/* /go/pkg/*
+ARG DOCKER_CLI_REPO=https://github.com/dhiltgen/cli-1.git
+ARG DOCKER_CLI_COMMIT=d05d61dee33061d2a56daf22d189c63f5945be9b
+RUN git clone ${DOCKER_CLI_REPO} /go/src/github.com/docker/cli && \
+    cd /go/src/github.com/docker/cli && \
+    git checkout -q ${DOCKER_CLI_COMMIT} && \
+    cd /go/src/github.com/docker/cli && \
+    bash -x ./scripts/build/binary && \
+    cp ./build/docker /usr/bin
 
 COPY . /go/src/github.com/docker/stacks
 WORKDIR /go/src/github.com/docker/stacks

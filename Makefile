@@ -11,6 +11,12 @@ BUILD_ARGS= \
 build: generate
 	docker build $(BUILD_ARGS) -t $(ORG)/$(CONTROLLER_IMAGE_NAME):$(TAG) .
 
+builder:
+	docker build $(BUILD_ARGS) --target builder -t stacks-builder:$(TAG) .
+	@echo ""
+	@echo "To use the builder image, run 'docker run --rm -it stacks-builder:latest'"
+	@echo ""
+
 test:
 	docker build $(BUILD_ARGS) -t $(ORG)/$(CONTROLLER_IMAGE_NAME):test --target unit-test .
 
